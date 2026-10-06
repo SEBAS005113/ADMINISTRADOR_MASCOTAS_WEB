@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Agenda de Citas - Veterinaria</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 min-h-screen p-8">
+
+    <div class="max-w-6xl mx-auto space-y-6">
+        <div class="bg-white rounded-2xl shadow-md p-6 flex justify-between items-center border-2 border-sky-100">
+            <div>
+                <h1 class="text-2xl font-bold text-slate-700">Módulo de Agenda de Citas 📅</h1>
+                <p class="text-sm text-slate-500">Programación y Control de Visitas</p>
+            </div>
+            <div class="flex space-x-3">
+                <a href="/dashboard" class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold py-2 px-4 rounded-lg transition">
+                    ⬅ Volver al Dashboard
+                </a>
+                <a href="/logout" class="bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold py-2 px-4 rounded-lg shadow transition">
+                    Cerrar Sesión 🚪
+                </a>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white p-6 rounded-2xl shadow-md border-2 border-sky-100 space-y-4">
+                <h2 class="text-lg font-bold text-slate-700 border-b pb-2">Agendar Nueva Cita</h2>
+                <form th:action="@{/citas/guardar}" method="post" class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600">Mascota:</label>
+                        <select name="idPet" required class="w-full px-3 py-1.5 border border-slate-300 rounded text-sm bg-white focus:ring-2 focus:ring-sky-400">
+                            <option value="" disabled selected>-- Seleccione --</option>
+                            <option th:each="m : ${mascotas}" th:value="${m.id}" th:text="${m.name + ' (' + m.code + ')'}"></option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600">Fecha y Hora:</label>
+                        <input type="datetime-local" name="appointmentDate" required class="w-full px-3 py-1.5 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-sky-400" />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600">Motivo:</label>
+                        <textarea name="reason" rows="2" required class="w-full px-3 py-1.5 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-sky-400"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600">Estado:</label>
+                        <select name="status" class="w-full px-3 py-1.5 border border-slate-300 rounded text-sm bg-white">
+                            <option value="Pendiente">Pendiente</option>
+                            <option value="Completada">Completada</option>
+                            <option value="Cancelada">Cancelada</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 rounded-lg shadow transition text-sm">
+                        Agendar Cita
+                    </button>
+                </form>
+            </div>
+
+            <div class="md:col-span-2 bg-white p-6 rounded-2xl shadow-md border-2 border-sky-100">
+                <h2 class="text-lg font-bold text-slate-700 mb-4">Citas Programadas</h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse border border-slate-200">
+                        <thead>
+                            <tr class="bg-sky-50 border-b border-slate-200 text-xs font-bold text-slate-700 uppercase">
+                                <th class="p-2.5 border">Fecha / Hora</th>
+                                <th class="p-2.5 border">Mascota</th>
+                                <th class="p-2.5 border">Motivo</th>
+                                <th class="p-2.5 border">Estado</th>
+                                <th class="p-2.5 border text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200 text-sm">
+                            <tr th:each="c : ${citas}" class="hover:bg-slate-50 transition">
+                                <td class="p-2.5 border font-medium text-slate-800" th:text="${c.appointmentDate}"></td>
+                                <td class="p-2.5 border font-semibold text-sky-800" th:text="${c.petName}"></td>
+                                <td class="p-2.5 border text-slate-600" th:text="${c.reason}"></td>
+                                <td class="p-2.5 border">
+                                    <span class="px-2 py-1 rounded text-xs font-bold"
+                                          th:classappend="${c.status == 'Pendiente' ? 'bg-amber-100 text-amber-800' : (c.status == 'Completada' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800')}"
+                                          th:text="${c.status}"></span>
+                                </td>
+                                <td class="p-2.5 border text-center">
+                                    <a th:href="@{/citas/eliminar/{id}(id=${c.id})}" 
+                                       onclick="return confirm('¿Seguro que deseas eliminar esta cita?');"
+                                       class="bg-rose-100 hover:bg-rose-200 text-rose-700 text-xs font-bold py-1 px-2.5 rounded transition">
+                                       Eliminar 🗑️
+                                   </a>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(citas)}">
+                                <td colspan="5" class="p-6 text-center text-slate-400">No hay citas agendadas todavía.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div th:if="${exito}" class="p-3 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded text-center text-sm font-semibold" th:text="${exito}"></div>
+        <div th:if="${error}" class="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded text-center text-sm font-semibold" th:text="${error}"></div>
+    </div>
+</body>
+</html>

@@ -15,9 +15,8 @@ public class ctlLogin {
 
     @GetMapping("/login")
     public String mostrarLogin(HttpSession session) {
-        // Si ya está logueado, redirigir directamente al panel
         if (session.getAttribute("admin") != null) {
-            return "redirect:/";
+            return "redirect:/dashboard";
         }
         return "login";
     }
@@ -30,7 +29,7 @@ public class ctlLogin {
         boolean valido = modelAdmin.validarLogin(username, password);
         if (valido) {
             session.setAttribute("admin", username);
-            return "redirect:/";
+            return "redirect:/dashboard"; // Redirige al nuevo dashboard
         } else {
             model.addAttribute("error", "Usuario o contraseña incorrectos.");
             return "login";
@@ -39,7 +38,7 @@ public class ctlLogin {
 
     @GetMapping("/logout")
     public String logout(HttpSession session) {
-        session.invalidate(); // Destruir la sesión
+        session.invalidate();
         return "redirect:/login";
     }
 }
