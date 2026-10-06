@@ -25,21 +25,38 @@ public class modelAppointment {
                     rs.getString("status")
                 ));
             }
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {
+            System.out.println("Error al listar citas: " + e.getMessage());
+            e.printStackTrace();
+        }
         return lista;
     }
 
     public boolean crearCita(clsAppointment app) {
+        if (app.getAppointmentDate() == null || app.getAppointmentDate().isEmpty()) {
+            return false;
+        }
+
+        // Limpiar formato datetime-local ('T' -> espacio y asegurar segundos)
+        String fechaFormateada = app.getAppointmentDate().replace("T", " ");
+        if (fechaFormateada.length() == 16) {
+            fechaFormateada += ":00";
+        }
+
         String query = "INSERT INTO tb_appointment (id_pet, appointment_date, reason, status) VALUES (?, ?, ?, ?)";
         try (Connection conn = DriverManager.getConnection(dbData.getUrl(), dbData.getUser(), dbData.getPassword());
              PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setInt(1, app.getIdPet());
-            stmt.setString(2, app.getAppointmentDate());
+            stmt.setString(2, fechaFormateada);
             stmt.setString(3, app.getReason());
             stmt.setString(4, app.getStatus());
             stmt.executeUpdate();
             return true;
-        } catch (Exception e) { e.printStackTrace(); return false; }
+        } catch (Exception e) {
+            System.out.println("❌ ERROR SQL AL CREAR CITA: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
     }
 
     public boolean eliminarCita(int id) {
@@ -49,6 +66,10 @@ public class modelAppointment {
             stmt.setInt(1, id);
             stmt.executeUpdate();
             return true;
-        } catch (Exception e) { e.printStackTrace(); return false; }
+        } catch (Exception e) {
+            System.out.println("Error al eliminar cita: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
     }
 }
